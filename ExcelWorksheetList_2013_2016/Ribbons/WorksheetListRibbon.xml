@@ -3,9 +3,8 @@
   <ribbon>
     <tabs>
       <tab idMso="TabAddIns">
-        <group id="ewlGroup" label="EWL">
-          <checkBox id="ewlVisible" label="Visible" 
-                    getPressed="Visible_getPressed" onAction="Visible_onAction"/>
+        <group id="ewlGroup" label="WorksheetList">
+          <button id="ewlButton" label="Show" size="large" onAction="button_Click" />
         </group>
       </tab>
     </tabs>

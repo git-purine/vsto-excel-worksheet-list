@@ -1,6 +1,6 @@
 ﻿using System;
-using Office = Microsoft.Office.Core;
 using System.Diagnostics;
+using Office = Microsoft.Office.Core;
 
 namespace ExcelWorksheetList_2013_2016
 {
@@ -21,18 +21,12 @@ namespace ExcelWorksheetList_2013_2016
 
 		#endregion
 
-		#region Private Members
-
-		private AppManager appManager { get; } = new AppManager();
-
-		#endregion Private Members
-
 
 		#region Protected Methods
 
 		protected override Office.IRibbonExtensibility CreateRibbonExtensibilityObject()
 		{
-			return appManager.Ribbon;
+			return AppManager.Instance.Ribbon;
 		}
 
 		#endregion Protected Methods
@@ -41,40 +35,14 @@ namespace ExcelWorksheetList_2013_2016
 
 		private void ThisAddIn_Startup(object sender, EventArgs e)
 		{
-			this.Application.WindowActivate += Application_WindowActivate;
+			Debug.WriteLine("ThisAddIn_Startup");
 
-			this.Application.WorkbookOpen += Application_WorkbookOpen;
-			this.Application.WorkbookBeforeClose += Application_WorkbookBeforeClose;
-
-			appManager.Startup(this.Application, this.CustomTaskPanes);
-		}
-
-		private void Application_WorkbookBeforeClose(Microsoft.Office.Interop.Excel.Workbook Wb, ref bool Cancel)
-		{
-
-
-		}
-
-		private void Application_WorkbookOpen(Microsoft.Office.Interop.Excel.Workbook Wb)
-		{
-			Debug.WriteLine(Wb.Windows.Count);
-			foreach(Microsoft.Office.Interop.Excel.Window window in Wb.Windows)
-			{
-				Debug.WriteLine(window.Index);
-			}
-		}
-
-		private void Application_WindowActivate(Microsoft.Office.Interop.Excel.Workbook Wb, Microsoft.Office.Interop.Excel.Window Wn)
-		{
-			//var form = new System.Windows.Forms.UserControl();
-			//var pane = this.CustomTaskPanes.Add(form, "test", Wn);
-
-			//pane.Visible = true;
+			AppManager.Instance.Startup(this.Application, this.CustomTaskPanes);
 		}
 
 		private void ThisAddIn_Shutdown(object sender, EventArgs e)
 		{
-			appManager.Shutdown();
+			AppManager.Instance.Shutdown();
 		}
 
 		#endregion Private Methods

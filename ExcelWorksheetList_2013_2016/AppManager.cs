@@ -1,15 +1,12 @@
-﻿using Microsoft.Office.Tools;
-using System;
-using System.Diagnostics;
-using System.Windows.Forms;
-using Toybox.Core;
-using Toybox.ExcelWorksheetList.Controls;
-using Toybox.Utility;
+﻿using System.Diagnostics;
+using Microsoft.Office.Tools;
 using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 
 namespace ExcelWorksheetList_2013_2016
 {
+	using Ribbons;
+
 	public class AppManager
 	{
 
@@ -17,15 +14,17 @@ namespace ExcelWorksheetList_2013_2016
 
 		private static readonly string TITLE = "Sheet List";
 
+		public static AppManager Instance { get; } = new AppManager();
+
 		#endregion [Static]
 
 
 		#region Constructor
 
-		public AppManager()
+		protected AppManager()
 		{
-			this.CM = new ControlManager();
-			this.VMM = new ViewModelManager();
+			this.Ribbon = new WorksheetListRibbon();
+			this.WorkUnits = new WorkUnitCollection();
 		}
 
 		#endregion Constructor
@@ -33,19 +32,15 @@ namespace ExcelWorksheetList_2013_2016
 
 		#region Public Members
 
-		public Office.IRibbonExtensibility Ribbon { get { return this.CM.Ribbon; } }
+		public Office.IRibbonExtensibility Ribbon { get; protected set; }
 
 		#endregion Public Members
 
 		#region Protected Members
 
 		protected Excel.Application App { get; set; }
-		protected CustomTaskPane Pane { get; set; }
-
-		protected ControlManager CM { get; set; }
-		protected ViewModelManager VMM { get; set; }
-
-		protected System.Threading.Timer Timer { get; set; }
+		protected CustomTaskPaneCollection Panes { get; set; }
+		protected WorkUnitCollection WorkUnits { get; set; }
 
 		#endregion Protected Members
 
@@ -55,172 +50,62 @@ namespace ExcelWorksheetList_2013_2016
 		public void Startup(Excel.Application app, CustomTaskPaneCollection panes)
 		{
 			this.App = app;
-			this.Pane = panes.Add(CM.ContainerControl, TITLE);
+			this.Panes = panes;
 
-			this.VMM.SheetListControl.Workbook = this.App.ActiveWorkbook;
-
-			// Hook
-			this.Hook(this.VMM.SheetListControl.Workbook);
-
-			// App
-			this.App.WorkbookActivate += Application_WorkbookActivate;
-			this.App.WorkbookDeactivate += Application_WorkbookDeactivate;
-
+			// Active Hook
 			this.App.WindowActivate += App_WindowActivate;
-			this.App.WindowDeactivate += App_WindowDeactivate;
-
-			// ViewModel
-			this.VMM.SheetListControl.Workbook = this.VMM.SheetListControl.Workbook;
-
-			// Control
-			this.CM.ContainerControl.DataContext = this.VMM.SheetListControl;
-
-			this.CM.Ribbon.VisibilityChanged += Ribbon_VisibilityChanged;
-			this.CM.Ribbon.Visible = true;
-
-			// Pane
-			this.Pane.DockPosition = Office.MsoCTPDockPosition.msoCTPDockPositionLeft;
-			this.Pane.Visible = true;
-			this.Pane.VisibleChanged += Pane_VisibleChanged;
-		}
-
-		private void App_WindowActivate(Excel.Workbook Wb, Excel.Window Wn)
-		{
-			Debug.WriteLine("Window Activate");
-			Debug.WriteLine(Wb.Name);
-
-
-			Wb.BeforeClose += Wb_BeforeClose;
-		}
-
-		private void Wb_BeforeClose(ref bool Cancel)
-		{
-			Debug.WriteLine("Close");
-		}
-
-		private void App_WindowDeactivate(Excel.Workbook Wb, Excel.Window Wn)
-		{
-			Debug.WriteLine("Window Deactivate");
-			Debug.WriteLine(Wb.Name);
 		}
 
 		public void Shutdown()
 		{
-			// Unhook
-			this.Unhook(this.VMM.SheetListControl.Workbook);
+			// Dispose
+			this.WorkUnits.ForEach(workUnit => workUnit.Dispose());
+			WorkUnits.Clear();
 
-			// App
-			this.App.WorkbookActivate -= Application_WorkbookActivate;
-			this.App.WorkbookDeactivate -= Application_WorkbookDeactivate;
-			this.Pane.VisibleChanged -= Pane_VisibleChanged;
+			// Active Hook
+			this.App.WindowActivate -= App_WindowActivate;
+		}
 
-			// VieModel
-			this.VMM.SheetListControl.Workbook = null;
-
-			// Control
-			this.CM.ContainerControl.Dispose();
+		public void ShowActiveWorksheetPane()
+		{
+			var workUnit = this.WorkUnits[this.App.ActiveWorkbook];
+			if(workUnit != null)
+			{
+				workUnit.Pane.Visible = true;
+			}
 		}
 
 		#endregion Public Methods
 
 		#region Private Methods
 
-		private void Application_WorkbookActivate(Excel.Workbook workbook)
+		private void App_WindowActivate(Excel.Workbook workbook, Excel.Window window)
 		{
-			Debug.WriteLine("Workbook Activate");
+			Debug.WriteLine("App_WindowActivate");
 
-			//this.Unhook(this.VMM.SheetListControl.Workbook);
-			this.VMM.SheetListControl.Workbook = workbook;
-			this.Hook(this.VMM.SheetListControl.Workbook);
-		}
-
-		private void Application_WorkbookDeactivate(Excel.Workbook workbook)
-		{
-			Debug.WriteLine("Workbook Deactivate");
-
-			this.VMM.SheetListControl.Workbook = null;
-			this.Unhook(workbook);
-		}
-
-		private void Ribbon_VisibilityChanged(object sender, EventArgs<bool> e)
-		{
-			this.Pane.Visible = e.Item;
-		}
-
-		private void Pane_VisibleChanged(object sender, EventArgs e)
-		{
-			this.CM.Ribbon.Visible = this.Pane.Visible;
-		}
-
-		private void Hook(Excel.Workbook workbook)
-		{
-			if (workbook == null)
+			this.WorkUnits.ForEach((workUnit) =>
 			{
-				return;
-			}
-
-			workbook.SheetActivate += this.Workbook_SheetActivate;
-
-			var hWndXLDesk = HandleUtility.GetXLDesk((IntPtr)workbook.Application.Hwnd);
-			if (hWndXLDesk == IntPtr.Zero)
-			{
-				Debug.WriteLine("hWndXLDesk : null");
-				return;
-			}
-
-			var hWndExcel7s = HandleUtility.GetExcel7(hWndXLDesk);
-			if (hWndExcel7s != null)
-			{
-				//Debug.WriteLine("hWndExcel7s : " + hWndExcel7s.Count);
-
-				foreach (var hWndExcel7 in hWndExcel7s)
+				foreach (Excel.Workbook appWorkbook in this.App.Workbooks)
 				{
-					this.CM.Excel7 = new Excel7Control(hWndExcel7);
-					this.CM.Excel7.Changed += this.Excel7_Changed;
-					break;
+					if (appWorkbook == workUnit.Workbook)
+					{
+						return;
+					}
 				}
-			}
-		}
 
-		private void Unhook(Excel.Workbook workbook)
-		{
-			if (workbook != null)
+				this.WorkUnits.Remove(workUnit);
+				workUnit.Dispose();
+			});
+
+			if (this.WorkUnits[workbook] == null)
 			{
-				workbook.SheetActivate -= this.Workbook_SheetActivate;
+				var workUnit = new WorkUnit(workbook);
+				workUnit.Pane = this.Panes.Add(workUnit.ContainerControl, TITLE, window);
+				workUnit.Pane.DockPosition = Office.MsoCTPDockPosition.msoCTPDockPositionLeft;
+				workUnit.Pane.Visible = true;
+
+				this.WorkUnits.Add(workUnit);
 			}
-
-			if (this.CM.Excel7 != null)
-			{
-				this.CM.Excel7.Changed -= this.Excel7_Changed;
-				this.CM.Excel7.Dispose();
-				this.CM.Excel7 = null;
-			}
-
-			this.Timer?.Dispose();
-		}
-
-		private void Workbook_SheetActivate(object sheet)
-		{
-			Debug.WriteLine("Activate");
-
-			this.VMM.SheetListControl?.WorkbookInfo?.Select(sheet);
-		}
-
-		private void Excel7_Changed(object sender, EventArgs e)
-		{
-			Debug.WriteLine("Changeing");
-
-			this.Timer?.Dispose();
-			this.Timer = new System.Threading.Timer((_) =>
-			{
-				Debug.WriteLine("Changed");
-
-				this.CM.ContainerControl?.Invoke((MethodInvoker)delegate ()
-				{
-					this.VMM.SheetListControl?.Update();
-				});
-
-			}, null, 50, System.Threading.Timeout.Infinite);
 		}
 
 		#endregion Private Methods
