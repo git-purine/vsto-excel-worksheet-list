@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -37,6 +38,17 @@ namespace ExcelWorksheetList_2013_2016.Ribbons
 			Debug.WriteLine("button_Click");
 
 			AppManager.Instance.ShowActiveWorksheetPane();
+		}
+
+		public Bitmap Ribbon_LoadImage(string imageName)
+		{
+			Debug.WriteLine(imageName);
+
+			switch (imageName)
+			{
+				case "icon": return new Bitmap(Properties.Resources.icon);
+			}
+			return null;
 		}
 
 		#endregion
