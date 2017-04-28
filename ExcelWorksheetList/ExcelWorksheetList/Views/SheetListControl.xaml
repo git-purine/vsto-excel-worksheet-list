@@ -32,17 +32,33 @@
                   Margin="4,2,4,4">
       <ListBox ItemsSource="{Binding FilteredWorkbookInfo}" 
                SelectedItem="{Binding SelectedSheet, Mode=OneWayToSource}">
+        <ListBox.ItemContainerStyle>
+          <Style TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+          </Style>
+        </ListBox.ItemContainerStyle>
         <ListBox.ItemTemplate>
           <DataTemplate>
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
               </Grid.ColumnDefinitions>
 
-              <TextBlock Grid.Column="0" Text="■" Foreground="{Binding Background}"/>
-              <TextBlock Grid.Column="1" Text="{Binding Name}"
-                         FontWeight="{Binding FontWeight}"/>
+              <TextBlock Grid.Column="0"
+                         Text="■" Foreground="{Binding HeaderColor}"/>
+              <TextBlock Grid.Column="1"
+                         Text="{Binding Name}" FontWeight="{Binding FontWeight}"/>
+
+              <Image Grid.Column="2" Width="32" Height="32"
+                     Source="pack://siteoforigin:,,,/Resources/protection.png"
+                     Visibility="{Binding VisibilityProtection}" />
+
+              <TextBlock Grid.Column="3"
+                         Text="Invisible" Visibility="{Binding VisibilityInvisible}"/>
+
             </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>

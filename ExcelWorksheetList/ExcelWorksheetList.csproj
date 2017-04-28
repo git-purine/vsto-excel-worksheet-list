@@ -77,12 +77,21 @@
     <Compile Include="ExcelWorksheetList\Models\WorkbookInfo.cs" />
     <Compile Include="Extensions\ComObjectEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Utility\HandleUtility.cs" />
     <Compile Include="Utility\User32Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExcelWorksheetList\Controls\WPFContainerControl.resx">
       <DependentUpon>WPFContainerControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +102,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExcelWorksheetList\Ribbons\VisibilityRibbon.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\protection.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

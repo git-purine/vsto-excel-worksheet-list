@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using System.Diagnostics;
 
 namespace Toybox.ExcelWorksheetList.Models
 {
@@ -16,9 +17,13 @@ namespace Toybox.ExcelWorksheetList.Models
 			this.Sheet = sheet;
 
 			this.FontWeight = FontWeights.Normal;
-			this.Foreground = Brushes.Black;
-			this.Background = Brushes.Transparent;
-			
+			this.HeaderColor = Brushes.Transparent;
+			this.VisibilityProtection = Visibility.Collapsed;
+			this.VisibilityInvisible = Visibility.Collapsed;
+
+			//this.Foreground = Brushes.Black;
+			//this.Background = Brushes.Transparent;
+
 			this.Update();
 		}
 
@@ -69,29 +74,65 @@ namespace Toybox.ExcelWorksheetList.Models
 		}
 		private FontWeight _fontWeight;
 
-		public Brush Foreground
+		public Brush HeaderColor
 		{
-			get { return this._foreground; }
+			get { return this._headColor; }
 			set
 			{
-				if (this._foreground == value) return;
-				this._foreground = value;
-				this.OnPropertyChanged(nameof(Foreground));
+				if (this._headColor == value) return;
+				this._headColor = value;
+				this.OnPropertyChanged(nameof(HeaderColor));
 			}
 		}
-		private Brush _foreground;
+		private Brush _headColor;
 
-		public Brush Background
+		public Visibility VisibilityProtection
 		{
-			get { return this._background; }
+			get { return this._visibilityProtection; }
 			set
 			{
-				if (this._background == value) return;
-				this._background = value;
-				this.OnPropertyChanged(nameof(Background));
+				if (this._visibilityProtection == value) return;
+				this._visibilityProtection = value;
+				this.OnPropertyChanged(nameof(VisibilityProtection));
 			}
 		}
-		private Brush _background;
+		private Visibility _visibilityProtection;
+
+		public Visibility VisibilityInvisible
+		{
+			get { return this._visibilityInvisible; }
+			set
+			{
+				if (this._visibilityInvisible == value) return;
+				this._visibilityInvisible = value;
+				this.OnPropertyChanged(nameof(VisibilityInvisible));
+			}
+		}
+		private Visibility _visibilityInvisible;
+
+		//public Brush Foreground
+		//{
+		//	get { return this._foreground; }
+		//	set
+		//	{
+		//		if (this._foreground == value) return;
+		//		this._foreground = value;
+		//		this.OnPropertyChanged(nameof(Foreground));
+		//	}
+		//}
+		//private Brush _foreground;
+
+		//public Brush Background
+		//{
+		//	get { return this._background; }
+		//	set
+		//	{
+		//		if (this._background == value) return;
+		//		this._background = value;
+		//		this.OnPropertyChanged(nameof(Background));
+		//	}
+		//}
+		//private Brush _background;
 
 		#endregion Public Members
 
@@ -100,11 +141,13 @@ namespace Toybox.ExcelWorksheetList.Models
 
 		public void Update()
 		{
+			// color
 			var tab = this.Sheet.InvokeMember("Tab");
 			var tabColor = tab.InvokeMember("Color");
 			if (tabColor is bool && !(bool)tabColor)
 			{
-				this.Background = Brushes.Transparent;
+				this.HeaderColor = Brushes.Transparent;
+				//this.Background = Brushes.Transparent;
 			}
 			else if (tabColor is int)
 			{
@@ -115,9 +158,18 @@ namespace Toybox.ExcelWorksheetList.Models
 
 				var color = Color.FromArgb(0xFF, (byte)r, (byte)g, (byte)b);
 
-				this.Foreground = color.GetBrightness() < 0.5 ? Brushes.White : Brushes.Black;
-				this.Background = new SolidColorBrush(color);
+				this.HeaderColor = new SolidColorBrush(color);
+				//this.Foreground = color.GetBrightness() < 0.5 ? Brushes.White : Brushes.Black;
+				//this.Background = new SolidColorBrush(color);
 			}
+
+			// protection
+			var protectionContents = this.Sheet.InvokeMember("ProtectContents");
+			this.VisibilityProtection = (protectionContents is bool && (bool)protectionContents) ? Visibility.Visible : Visibility.Collapsed;
+
+			// invisible
+			var visible = this.Sheet.InvokeMember("Visible");
+			this.VisibilityInvisible = (visible is int && (int)visible == 0) ? Visibility.Visible : Visibility.Collapsed;
 
 			this.OnPropertyChanged(nameof(Name));
 		}
