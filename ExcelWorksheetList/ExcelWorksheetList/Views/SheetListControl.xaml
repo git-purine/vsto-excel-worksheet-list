@@ -34,6 +34,7 @@
                SelectedItem="{Binding SelectedSheet, Mode=OneWayToSource}">
         <ListBox.ItemContainerStyle>
           <Style TargetType="ListBoxItem">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
           </Style>
         </ListBox.ItemContainerStyle>
@@ -52,12 +53,13 @@
               <TextBlock Grid.Column="1"
                          Text="{Binding Name}" FontWeight="{Binding FontWeight}"/>
 
-              <Image Grid.Column="2" Width="32" Height="32"
-                     Source="pack://siteoforigin:,,,/Resources/protection.png"
-                     Visibility="{Binding VisibilityProtection}" />
+              <Image Grid.Column="2" 
+                     Source="/ExcelWorksheetList;component/Resources/lock.png"
+                     Visibility="{Binding ProtectionVisibility}" />
 
-              <TextBlock Grid.Column="3"
-                         Text="Invisible" Visibility="{Binding VisibilityInvisible}"/>
+              <Image Grid.Column="3" 
+                     Source="/ExcelWorksheetList;component/Resources/eye.png"
+                     Visibility="{Binding InvisibleVisibility}" />
 
             </Grid>
           </DataTemplate>
@@ -65,5 +67,5 @@
       </ListBox>
     </ScrollViewer>
   </Grid>
-  
+
 </UserControl>

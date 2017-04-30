@@ -9,6 +9,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelWorksheetList_2013_201
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelWorksheetList_2010", "ExcelWorksheetList_2010\ExcelWorksheetList_2010.csproj", "{3D80AAA9-21B8-4823-8437-4B42BB8555C8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "key", "key", "{E7D66596-DE7E-4CA7-A165-E2F5BFCAEC5D}"
+	ProjectSection(SolutionItems) = preProject
+		ewl.cer = ewl.cer
+		ewl.pfx = ewl.pfx
+		ewl.pvk = ewl.pvk
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
